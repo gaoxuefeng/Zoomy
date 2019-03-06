@@ -15,7 +15,7 @@ public class Zoomy {
 
     private static ZoomyConfig mDefaultConfig = new ZoomyConfig();
 
-    private Zoomy() {
+    public Zoomy() {
     }
 
     public static void setDefaultConfig(ZoomyConfig config) {
@@ -58,14 +58,18 @@ public class Zoomy {
 
         public Builder animateZooming(boolean animate) {
             checkNotDisposed();
-            if (mConfig == null) mConfig = new ZoomyConfig();
+            if (mConfig == null) {
+                mConfig = new ZoomyConfig();
+            }
             this.mConfig.setZoomAnimationEnabled(animate);
             return this;
         }
 
         public Builder enableImmersiveMode(boolean enable) {
             checkNotDisposed();
-            if (mConfig == null) mConfig = new ZoomyConfig();
+            if (mConfig == null) {
+                mConfig = new ZoomyConfig();
+            }
             this.mConfig.setImmersiveModeEnabled(enable);
             return this;
         }
@@ -103,11 +107,15 @@ public class Zoomy {
 
         public void register() {
             checkNotDisposed();
-            if (mConfig == null) mConfig = mDefaultConfig;
-            if (mTargetContainer == null)
+            if (mConfig == null) {
+                mConfig = mDefaultConfig;
+            }
+            if (mTargetContainer == null) {
                 throw new IllegalArgumentException("Target container must not be null");
-            if (mTargetView == null)
+            }
+            if (mTargetView == null) {
                 throw new IllegalArgumentException("Target view must not be null");
+            }
             mTargetView.setOnTouchListener(new ZoomableTouchListener(mTargetContainer, mTargetView,
                     mConfig, mZoomInterpolator, mZoomListener, mTapListener, mLongPressListener,
                     mdDoubleTapListener));
@@ -115,7 +123,9 @@ public class Zoomy {
         }
 
         private void checkNotDisposed() {
-            if (mDisposed) throw new IllegalStateException("Builder already disposed");
+            if (mDisposed) {
+                throw new IllegalStateException("Builder already disposed");
+            }
         }
 
     }

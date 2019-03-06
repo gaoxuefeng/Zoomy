@@ -3,6 +3,7 @@ package com.ablanco.zoomy;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -41,18 +42,24 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
 
                 @Override
                 public boolean onSingleTapConfirmed(MotionEvent e) {
-                    if (mTapListener != null) mTapListener.onTap(mTarget);
+                    if (mTapListener != null) {
+                        mTapListener.onTap(mTarget);
+                    }
                     return true;
                 }
 
                 @Override
                 public void onLongPress(MotionEvent e) {
-                    if (mLongPressListener != null) mLongPressListener.onLongPress(mTarget);
+                    if (mLongPressListener != null) {
+                        mLongPressListener.onLongPress(mTarget);
+                    }
                 }
 
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
-                    if (mDoubleTapListener != null) mDoubleTapListener.onDoubleTap(mTarget);
+                    if (mDoubleTapListener != null) {
+                        mDoubleTapListener.onDoubleTap(mTarget);
+                    }
                     return true;
                 }
             };
@@ -67,18 +74,24 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     private Runnable mEndingZoomAction = new Runnable() {
         @Override
         public void run() {
-            removeFromDecorView(mShadow);
-            removeFromDecorView(mZoomableView);
-            mTarget.setVisibility(View.VISIBLE);
-            mZoomableView = null;
-            mCurrentMovementMidPoint = new PointF();
-            mInitialPinchMidPoint = new PointF();
-            mAnimatingZoomEnding = false;
-            mState = STATE_IDLE;
-
-            if (mZoomListener != null) mZoomListener.onViewEndedZooming(mTarget);
-
-            if (mConfig.isImmersiveModeEnabled()) showSystemUI();
+            try {
+                removeFromDecorView(mShadow);
+                removeFromDecorView(mZoomableView);
+                mTarget.setVisibility(View.VISIBLE);
+                mZoomableView = null;
+                mCurrentMovementMidPoint = new PointF();
+                mInitialPinchMidPoint = new PointF();
+                mAnimatingZoomEnding = false;
+                mState = STATE_IDLE;
+                if (mZoomListener != null) {
+                    mZoomListener.onViewEndedZooming(mTarget);
+                }
+                if (mConfig.isImmersiveModeEnabled()) {
+                    showSystemUI();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     };
 
@@ -106,14 +119,23 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
 
     @Override
     public boolean onTouch(View v, MotionEvent ev) {
-
-        if (mAnimatingZoomEnding || ev.getPointerCount() > 2) return true;
+        int action = ev.getAction() & MotionEvent.ACTION_MASK;
+        Log.i("ZOOMTouch", MotionEvent.actionToString(action));
+        Log.i("ZOOMmState", mState + "");
+        Log.i("ZOOMmPointCount", ev.getPointerCount() + "");
+        if (mAnimatingZoomEnding) {
+            return true;
+        }
+        if (ev.getPointerCount() > 2) {
+            if (mState == STATE_ZOOMING && (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP)) {
+                //三个指头以上同时离开时继续执行下一步
+            } else {
+                return true;
+            }
+        }
 
         mScaleGestureDetector.onTouchEvent(ev);
         mGestureDetector.onTouchEvent(ev);
-
-        int action = ev.getAction() & MotionEvent.ACTION_MASK;
-
         switch (action) {
             case MotionEvent.ACTION_POINTER_DOWN:
             case MotionEvent.ACTION_DOWN:
@@ -125,6 +147,8 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
                         mState = STATE_ZOOMING;
                         MotionUtils.midPointOfEvent(mInitialPinchMidPoint, ev);
                         startZoomingView(mTarget);
+                        break;
+                    default:
                         break;
                 }
                 break;
@@ -152,7 +176,6 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-
                 switch (mState) {
                     case STATE_ZOOMING:
                         endZoomingView();
@@ -160,11 +183,13 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
                     case STATE_POINTER_DOWN:
                         mState = STATE_IDLE;
                         break;
+                    default:
+                        break;
                 }
 
-
                 break;
-
+            default:
+                break;
         }
 
         return true;
@@ -181,7 +206,9 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
                     .scaleY(1)
                     .setInterpolator(mEndZoomingInterpolator)
                     .withEndAction(mEndingZoomAction).start();
-        } else mEndingZoomAction.run();
+        } else {
+            mEndingZoomAction.run();
+        }
     }
 
 
@@ -196,7 +223,9 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         mZoomableView.setX(mTargetViewCords.x);
         mZoomableView.setY(mTargetViewCords.y);
 
-        if (mShadow == null) mShadow = new View(mTarget.getContext());
+        if (mShadow == null) {
+            mShadow = new View(mTarget.getContext());
+        }
         mShadow.setBackgroundResource(0);
 
         addToDecorView(mShadow);
@@ -206,14 +235,20 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         disableParentTouch(mTarget.getParent());
         mTarget.setVisibility(View.INVISIBLE);
 
-        if (mConfig.isImmersiveModeEnabled()) hideSystemUI();
-        if (mZoomListener != null) mZoomListener.onViewStartedZooming(mTarget);
+        if (mConfig.isImmersiveModeEnabled()) {
+            hideSystemUI();
+        }
+        if (mZoomListener != null) {
+            mZoomListener.onViewStartedZooming(mTarget);
+        }
     }
 
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-        if (mZoomableView == null) return false;
+        if (mZoomableView == null) {
+            return false;
+        }
 
         mScaleFactor *= detector.getScaleFactor();
 
@@ -237,11 +272,11 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     }
 
     private void addToDecorView(View v) {
-        mTargetContainer.getDecorView().addView(v);
+        mTargetContainer.getRootView().addView(v);
     }
 
     private void removeFromDecorView(View v) {
-        mTargetContainer.getDecorView().removeView(v);
+        mTargetContainer.getRootView().removeView(v);
     }
 
     private void obscureDecorView(float factor) {
@@ -264,6 +299,8 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
 
     private void disableParentTouch(ViewParent view) {
         view.requestDisallowInterceptTouchEvent(true);
-        if (view.getParent() != null) disableParentTouch((view.getParent()));
+        if (view.getParent() != null) {
+            disableParentTouch((view.getParent()));
+        }
     }
 }

@@ -10,4 +10,6 @@ import android.view.ViewGroup;
 public interface TargetContainer {
 
     ViewGroup getDecorView();
+
+    ViewGroup getRootView();
 }

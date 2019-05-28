@@ -1,32 +1,36 @@
 apply plugin: 'com.android.library'
-
-ext {
-    bintrayRepo = 'maven'
-    bintrayName = 'zoomy'
-
-    publishedGroupId = 'com.ablanco.zoomy'
-    libraryName = 'Zoomy'
-    artifact = 'zoomy'
-
-    libraryDescription = 'Zoomy is an easy to use pinch-to-zoom Android library Edit'
-
-    siteUrl = 'https://github.com/imablanco/Zoomy'
-    gitUrl = 'https://github.com/imablanco/Zoomy.git'
-
-    libraryVersion = '1.1.0'
-
-    developerId = 'ablanco'
-    developerName = 'Alvaro Blanco'
-    developerEmail = 'alvaro.bl91@gmail.com'
-
-    licenseName = 'The Apache Software License, Version 2.0'
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-    allLicenses = ["Apache-2.0"]
-}
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+def siteUrl = 'https://github.com/gaoxuefeng/Zoomy'
+def gitUrl = 'https://github.com/gaoxuefeng/Zoomy.git'
+def version = "1.0.1"
+//ext {
+//    bintrayRepo = 'maven'
+//    bintrayName = 'zoomy'
+//
+//    publishedGroupId = 'com.ablanco.zoomy'
+//    libraryName = 'Zoomy'
+//    artifact = 'zoomy'
+//
+//    libraryDescription = 'Zoomy is an easy to use pinch-to-zoom Android library Edit'
+//
+//    siteUrl = 'https://github.com/imablanco/Zoomy'
+//    gitUrl = 'https://github.com/imablanco/Zoomy.git'
+//
+//    libraryVersion = '1.1.0'
+//
+//    developerId = 'ablanco'
+//    developerName = 'Alvaro Blanco'
+//    developerEmail = 'alvaro.bl91@gmail.com'
+//
+//    licenseName = 'The Apache Software License, Version 2.0'
+//    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//    allLicenses = ["Apache-2.0"]
+//}
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -44,9 +48,72 @@ android {
         }
     }
 }
-
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                // Add your description here
+                name 'Zoomy Forked from imablanco/Zoomy 修复三个指头同时放开不能收回zoom图片的bug' //项目描述,填什么都可以
+                url siteUrl
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'gaoxuefeng'    //填写的一些基本信息
+                        name 'Gao Xuefeng'
+                        email '107820194@qq.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    //    archives javadocJar //正常时不需要注释掉的报错时注释掉,
+    archives sourcesJar
+}
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "zoomy"    //发布到JCenter上的项目名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+}
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
+    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 }
 

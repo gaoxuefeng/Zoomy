@@ -27,5 +27,5 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportVersion"
     testImplementation 'junit:junit:4.12'
     implementation "com.android.support:recyclerview-v7:$rootProject.ext.supportVersion"
-    implementation project (':zoomy')
+    implementation project(':zoomy')
 }

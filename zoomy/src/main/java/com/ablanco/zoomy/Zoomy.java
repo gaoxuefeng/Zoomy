@@ -38,6 +38,7 @@ public class Zoomy {
         private TapListener mTapListener;
         private LongPressListener mLongPressListener;
         private DoubleTapListener mdDoubleTapListener;
+        private String filePath;
 
         public Builder(Activity activity) {
             this.mTargetContainer = new ActivityContainer(activity);
@@ -53,6 +54,11 @@ public class Zoomy {
 
         public Builder target(View target) {
             this.mTargetView = target;
+            return this;
+        }
+
+        public Builder localFile(String filePath) {
+            this.filePath = filePath;
             return this;
         }
 
@@ -118,7 +124,7 @@ public class Zoomy {
             }
             mTargetView.setOnTouchListener(new ZoomableTouchListener(mTargetContainer, mTargetView,
                     mConfig, mZoomInterpolator, mZoomListener, mTapListener, mLongPressListener,
-                    mdDoubleTapListener));
+                    mdDoubleTapListener, filePath));
             mDisposed = true;
         }
 
